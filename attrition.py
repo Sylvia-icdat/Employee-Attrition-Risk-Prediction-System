@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
-from imblearn.over_sampling import SMOTE
-from xgboost import XGBClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
 
 # 1. 页面标题
 st.set_page_config(page_title="Employee Attrition Risk Predictor", layout="wide")
@@ -28,7 +28,6 @@ def load_model():
         X[col] = encoders[col].transform(X[col])
     
     # ✅ 新增：训练集测试集分离（关键优化）
-    from sklearn.model_selection import train_test_split
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
