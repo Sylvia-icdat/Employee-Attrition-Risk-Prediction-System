@@ -27,22 +27,21 @@ def load_model():
     for col in cat_cols:
         X[col] = encoders[col].transform(X[col])
     
-    # 训练
-    smote = SMOTE(random_state=42)
-    X_resampled, y_resampled = smote.fit_resample(X, y)
-
-    # ✅ 优化2：XGBoost 模型（比随机森林强很多）
-    model = XGBClassifier(
-        n_estimators=150,
-        max_depth=4,
-        learning_rate=0.1,
-        scale_pos_weight=3,  # 处理不平衡
-        random_state=42,
-        use_label_encoder=False,
-        eval_metric="logloss"
+    # ✅ 新增：训练集测试集分离（关键优化）
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
     )
-    
-    model.fit(X_resampled, y_resampled)
+
+    # ✅ 优化后的随机森林
+    model = RandomForestClassifier(
+        n_estimators=250,
+        max_depth=10,
+        min_samples_split=5,
+        class_weight='balanced',  # 应对数据不平衡
+        random_state=42
+    )
+    model.fit(X_train, y_train)
     return model, encoders
 
 model, encoders = load_model()
