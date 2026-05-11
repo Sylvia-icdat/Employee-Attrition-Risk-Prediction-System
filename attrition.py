@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from imblearn.over_sampling import SMOTE
+from xgboost import XGBClassifier
 from sklearn.preprocessing import LabelEncoder
 
 # 1. 页面标题
@@ -27,8 +28,21 @@ def load_model():
         X[col] = encoders[col].transform(X[col])
     
     # 训练
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X, y)
+    smote = SMOTE(random_state=42)
+    X_resampled, y_resampled = smote.fit_resample(X, y)
+
+    # ✅ 优化2：XGBoost 模型（比随机森林强很多）
+    model = XGBClassifier(
+        n_estimators=150,
+        max_depth=4,
+        learning_rate=0.1,
+        scale_pos_weight=3,  # 处理不平衡
+        random_state=42,
+        use_label_encoder=False,
+        eval_metric="logloss"
+    )
+    
+    model.fit(X_resampled, y_resampled)
     return model, encoders
 
 model, encoders = load_model()
